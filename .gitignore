@@ -1,0 +1,5 @@
+src/backend/target/
+src/frontend/node_modules/
+src/frontend/dist/
+.DS_Store
+Thumbs.db
