@@ -44,6 +44,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/complaints").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/admin/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/complaints/**").permitAll()
+                        .requestMatchers("/api/surveys/**").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint));

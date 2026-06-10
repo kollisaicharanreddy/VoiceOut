@@ -104,3 +104,48 @@ export function getSimilarComplaints(auth, complaintId, limit = 5) {
     credentials: 'include'
   });
 }
+
+export function adminListSurveys(auth) {
+  return request('/admin/surveys', {
+    headers: authHeader(auth),
+    credentials: 'include'
+  });
+}
+
+export function adminGetSurveyDetails(auth, surveyId) {
+  return request(`/admin/surveys/${surveyId}`, {
+    headers: authHeader(auth),
+    credentials: 'include'
+  });
+}
+
+export function adminCreateSurvey(auth, payload) {
+  return request('/admin/surveys', {
+    method: 'POST',
+    headers: authHeader(auth),
+    credentials: 'include',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function verifySurveyToken(token) {
+  return request(`/surveys/verify?token=${encodeURIComponent(token)}`);
+}
+
+export function submitSurveyFeedback(token, answers) {
+  return request('/surveys/submit', {
+    method: 'POST',
+    body: JSON.stringify({ token, answers })
+  });
+}
+
+export function adminAddSurveyInvitations(auth, surveyId, emails) {
+  return request(`/admin/surveys/${surveyId}/invitations`, {
+    method: 'POST',
+    headers: authHeader(auth),
+    credentials: 'include',
+    body: JSON.stringify({ emails })
+  });
+}
+
+

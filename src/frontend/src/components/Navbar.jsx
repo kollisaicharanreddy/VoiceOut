@@ -10,7 +10,7 @@ export default function Navbar({ currentView, onNavigate = () => {} }) {
             className={`ghost-button ${currentView === 'home' ? 'active' : ''}`} 
             onClick={() => onNavigate('home')}
           >
-            Submit
+            Submit a Complaint
           </button>
           <button 
             className={`ghost-button ${currentView === 'admin' ? 'active' : ''}`} 
