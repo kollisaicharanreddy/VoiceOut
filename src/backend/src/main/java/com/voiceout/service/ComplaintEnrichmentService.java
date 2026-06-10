@@ -80,7 +80,8 @@ public class ComplaintEnrichmentService {
     }
 
     private double scoreConfidence(String content) {
-        long wordCount = content.trim().split("\\s+").length;
+        String trimmed = content.trim();
+        long wordCount = trimmed.isEmpty() ? 0 : trimmed.split("\\s+").length;
         if (wordCount >= 60) {
             return 0.88;
         }

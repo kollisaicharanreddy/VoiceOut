@@ -24,6 +24,8 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -61,7 +63,16 @@ public class ComplaintService {
         complaint.setEnrichmentStatus(EnrichmentStatus.PENDING);
         complaintRepository.save(complaint);
 
-        complaintEnrichmentService.enrichComplaint(complaint.getId());
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    complaintEnrichmentService.enrichComplaint(complaint.getId());
+                }
+            });
+        } else {
+            complaintEnrichmentService.enrichComplaint(complaint.getId());
+        }
 
         return new ComplaintCreateResponse(
                 complaint.getTrackingCode(),

@@ -418,11 +418,17 @@ textarea {
   box-shadow: 0 4px 20px rgba(214, 163, 72, 0.08);
 }
 
-.complaint-card p,
+.complaint-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
 .note-item p,
 .detail-content {
   margin: 10px 0 0;
   color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .detail-panel {
