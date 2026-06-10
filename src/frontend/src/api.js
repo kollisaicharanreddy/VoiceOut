@@ -98,12 +98,6 @@ export function addComplaintNote(auth, complaintId, note) {
   });
 }
 
-export function getSimilarComplaints(auth, complaintId, limit = 5) {
-  return request(`/admin/complaints/${complaintId}/similar?n=${limit}`, {
-    headers: authHeader(auth),
-    credentials: 'include'
-  });
-}
 
 export function adminListSurveys(auth) {
   return request('/admin/surveys', {

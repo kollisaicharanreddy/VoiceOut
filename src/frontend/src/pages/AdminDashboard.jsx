@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addComplaintNote, getComplaintDetail, getSimilarComplaints, listComplaints, updateComplaintStatus, adminLogin, adminListSurveys, adminGetSurveyDetails, adminCreateSurvey } from '../api';
+import { addComplaintNote, getComplaintDetail, listComplaints, updateComplaintStatus, adminLogin, adminListSurveys, adminGetSurveyDetails, adminCreateSurvey } from '../api';
 import StatusBadge from '../components/StatusBadge';
 
 const DEFAULT_AUTH = { username: '', password: '' };
@@ -16,7 +16,6 @@ export default function AdminDashboard({ onExit }) {
   const [complaints, setComplaints] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [detail, setDetail] = useState(null);
-  const [similar, setSimilar] = useState([]);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -252,7 +251,6 @@ export default function AdminDashboard({ onExit }) {
       if (data.length === 0) {
         setSelectedId('');
         setDetail(null);
-        setSimilar([]);
       }
     } catch (dashboardError) {
       setError(dashboardError.message || 'Unable to load complaints');
@@ -269,7 +267,6 @@ export default function AdminDashboard({ onExit }) {
   async function refreshDetail(complaintId) {
     setBusy(true);
     setError('');
-    setSimilar([]);
     try {
       const data = await getComplaintDetail(auth, complaintId);
       setDetail(data);
@@ -280,15 +277,6 @@ export default function AdminDashboard({ onExit }) {
         setAuthenticated(false);
         sessionStorage.removeItem('voiceout-admin-auth');
       }
-      setBusy(false);
-      return;
-    }
-
-    try {
-      const similarity = await getSimilarComplaints(auth, complaintId);
-      setSimilar(similarity);
-    } catch (similarityError) {
-      console.warn("Similarity fetch skipped (embedding pending):", similarityError.message);
     } finally {
       setBusy(false);
     }
@@ -510,10 +498,6 @@ export default function AdminDashboard({ onExit }) {
                       <span className="helper">Confidence</span>
                       <div>{detail.aiConfidence ? `${Math.round(detail.aiConfidence * 100)}%` : 'N/A'}</div>
                     </div>
-                    <div>
-                      <span className="helper">Vector</span>
-                      <div>{detail.embeddingAvailable ? 'Available' : 'Pending'}</div>
-                    </div>
                   </div>
 
                   <label className="field compact">
@@ -553,19 +537,7 @@ export default function AdminDashboard({ onExit }) {
                     ))}
                   </div>
 
-                  <div className="notes-stack">
-                    <h4>Similar complaints</h4>
-                    {similar.length === 0 ? <div className="empty-state">No comparable records available yet.</div> : null}
-                    {similar.map((entry) => (
-                      <div className="note-item" key={entry.id}>
-                        <div className="card-topline">
-                          <strong>{entry.trackingCode}</strong>
-                          <span className="helper">{Math.round(entry.similarity * 100)}%</span>
-                        </div>
-                        <p>{entry.aiSummary || 'No summary available.'}</p>
-                      </div>
-                    ))}
-                  </div>
+
                 </>
               ) : (
                 <div className="empty-state">Select a complaint to review its detail view.</div>

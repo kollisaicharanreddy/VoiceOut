@@ -6,16 +6,13 @@ import com.voiceout.dto.AdminNoteRequest;
 import com.voiceout.dto.ComplaintCreateRequest;
 import com.voiceout.dto.ComplaintCreateResponse;
 import com.voiceout.dto.ComplaintPublicResponse;
-import com.voiceout.dto.ComplaintSimilarityResponse;
 import com.voiceout.dto.ComplaintStatusUpdateRequest;
 import com.voiceout.dto.AdminNoteViewResponse;
 import com.voiceout.model.AdminNote;
 import com.voiceout.model.Complaint;
-import com.voiceout.model.ComplaintEmbedding;
 import com.voiceout.model.ComplaintStatus;
 import com.voiceout.model.EnrichmentStatus;
 import com.voiceout.repository.AdminNoteRepository;
-import com.voiceout.repository.ComplaintEmbeddingRepository;
 import com.voiceout.repository.ComplaintRepository;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -35,25 +32,19 @@ public class ComplaintService {
     private static final char[] TRACKING_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
     private final ComplaintRepository complaintRepository;
-    private final ComplaintEmbeddingRepository complaintEmbeddingRepository;
     private final AdminNoteRepository adminNoteRepository;
     private final ComplaintEnrichmentService complaintEnrichmentService;
-    private final ComplaintVectorService complaintVectorService;
     private final SubmissionRateLimiter submissionRateLimiter;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public ComplaintService(
             ComplaintRepository complaintRepository,
-            ComplaintEmbeddingRepository complaintEmbeddingRepository,
             AdminNoteRepository adminNoteRepository,
             ComplaintEnrichmentService complaintEnrichmentService,
-            ComplaintVectorService complaintVectorService,
             SubmissionRateLimiter submissionRateLimiter) {
         this.complaintRepository = complaintRepository;
-        this.complaintEmbeddingRepository = complaintEmbeddingRepository;
         this.adminNoteRepository = adminNoteRepository;
         this.complaintEnrichmentService = complaintEnrichmentService;
-        this.complaintVectorService = complaintVectorService;
         this.submissionRateLimiter = submissionRateLimiter;
     }
 
@@ -114,8 +105,6 @@ public class ComplaintService {
                 .map(note -> new AdminNoteViewResponse(note.getId(), note.getNote(), note.getCreatedAt()))
                 .toList();
 
-        boolean embeddingAvailable = complaintEmbeddingRepository.findByComplaint_Id(complaintId).isPresent();
-
         return new AdminComplaintDetailResponse(
                 complaint.getId(),
                 complaint.getTrackingCode(),
@@ -127,7 +116,6 @@ public class ComplaintService {
                 complaint.getAiConfidence(),
                 complaint.getCreatedAt(),
                 complaint.getUpdatedAt(),
-                embeddingAvailable,
                 noteViews);
     }
 
@@ -149,30 +137,7 @@ public class ComplaintService {
         return getAdminComplaint(complaintId);
     }
 
-    @Transactional(readOnly = true)
-    public List<ComplaintSimilarityResponse> findSimilarComplaints(UUID complaintId, int limit) {
-        ComplaintEmbedding targetEmbedding = complaintEmbeddingRepository.findByComplaint_Id(complaintId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No embedding available for complaint"));
 
-        return complaintEmbeddingRepository.findAll().stream()
-                .filter(embedding -> !embedding.getComplaint().getId().equals(complaintId))
-                .map(embedding -> toSimilarityResponse(embedding, targetEmbedding))
-                .sorted(Comparator.comparingDouble(ComplaintSimilarityResponse::similarity).reversed())
-                .limit(Math.max(1, limit))
-                .toList();
-    }
-
-    private ComplaintSimilarityResponse toSimilarityResponse(ComplaintEmbedding candidate, ComplaintEmbedding target) {
-        double similarity = complaintVectorService.cosineSimilarity(target.getEmbeddingVector(), candidate.getEmbeddingVector());
-        Complaint complaint = candidate.getComplaint();
-        return new ComplaintSimilarityResponse(
-                complaint.getId(),
-                complaint.getTrackingCode(),
-                complaint.getStatus().name(),
-                complaint.getAiCategory(),
-                complaint.getAiSummary(),
-                similarity);
-    }
 
     private Complaint findComplaintOrThrow(UUID complaintId) {
         return complaintRepository.findById(complaintId)

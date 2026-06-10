@@ -55,9 +55,6 @@ public class Complaint {
     @OneToMany(mappedBy = "complaint", fetch = FetchType.LAZY)
     private List<AdminNote> notes = new ArrayList<>();
 
-    @OneToOne(mappedBy = "complaint", fetch = FetchType.LAZY)
-    private ComplaintEmbedding embedding;
-
     @PrePersist
     public void onCreate() {
         if (id == null) {
@@ -149,7 +146,4 @@ public class Complaint {
         return notes;
     }
 
-    public ComplaintEmbedding getEmbedding() {
-        return embedding;
-    }
 }

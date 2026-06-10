@@ -3,7 +3,6 @@ package com.voiceout.controller;
 import com.voiceout.dto.AdminComplaintDetailResponse;
 import com.voiceout.dto.AdminComplaintListItemResponse;
 import com.voiceout.dto.AdminNoteRequest;
-import com.voiceout.dto.ComplaintSimilarityResponse;
 import com.voiceout.dto.ComplaintStatusUpdateRequest;
 import com.voiceout.service.ComplaintService;
 import jakarta.validation.Valid;
@@ -51,12 +50,5 @@ public class AdminController {
             @PathVariable UUID complaintId,
             @Valid @RequestBody ComplaintStatusUpdateRequest request) {
         return complaintService.updateStatus(complaintId, request);
-    }
-
-    @GetMapping("/complaints/{complaintId}/similar")
-    public List<ComplaintSimilarityResponse> findSimilar(
-            @PathVariable UUID complaintId,
-            @RequestParam(defaultValue = "5") int n) {
-        return complaintService.findSimilarComplaints(complaintId, n);
     }
 }

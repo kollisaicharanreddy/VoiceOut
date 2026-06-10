@@ -15,6 +15,5 @@ public record AdminComplaintDetailResponse(
         Double aiConfidence,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        boolean embeddingAvailable,
         List<AdminNoteViewResponse> notes) {
 }

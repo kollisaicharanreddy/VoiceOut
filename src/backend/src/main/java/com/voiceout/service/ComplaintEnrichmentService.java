@@ -1,9 +1,7 @@
 package com.voiceout.service;
 
 import com.voiceout.model.Complaint;
-import com.voiceout.model.ComplaintEmbedding;
 import com.voiceout.model.EnrichmentStatus;
-import com.voiceout.repository.ComplaintEmbeddingRepository;
 import com.voiceout.repository.ComplaintRepository;
 import java.util.Locale;
 import java.util.Optional;
@@ -17,16 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ComplaintEnrichmentService {
 
     private final ComplaintRepository complaintRepository;
-    private final ComplaintEmbeddingRepository complaintEmbeddingRepository;
-    private final ComplaintVectorService complaintVectorService;
 
     public ComplaintEnrichmentService(
-            ComplaintRepository complaintRepository,
-            ComplaintEmbeddingRepository complaintEmbeddingRepository,
-            ComplaintVectorService complaintVectorService) {
+            ComplaintRepository complaintRepository) {
         this.complaintRepository = complaintRepository;
-        this.complaintEmbeddingRepository = complaintEmbeddingRepository;
-        this.complaintVectorService = complaintVectorService;
     }
 
     @Async
@@ -51,12 +43,6 @@ public class ComplaintEnrichmentService {
             complaint.setAiConfidence(scoreConfidence(content));
             complaint.setEnrichmentStatus(EnrichmentStatus.DONE);
             complaintRepository.save(complaint);
-
-            ComplaintEmbedding embedding = complaintEmbeddingRepository.findByComplaint_Id(complaintId)
-                    .orElseGet(ComplaintEmbedding::new);
-            embedding.setComplaint(complaint);
-            embedding.setEmbeddingVector(complaintVectorService.embed(content));
-            complaintEmbeddingRepository.save(embedding);
 
             return CompletableFuture.completedFuture(null);
         } catch (RuntimeException exception) {
